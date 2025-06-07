@@ -1,64 +1,88 @@
 using System;
 
-// Делегат для події
-public delegate void BalanceChangedHandler(decimal newBalance);
-
-// Клас банківського рахунку
-public class BankAccount
+namespace BankEventDemo
 {
-    private decimal balance;
+    public delegate void BalanceChangedHandler(decimal newBalance);
 
-    // Події
-    public event BalanceChangedHandler BalanceChangedDeposit;
-    public event BalanceChangedHandler BalanceChangedWithdraw;
-
-    // Метод поповнення
-    public void Deposit(decimal amount)
+    class BankAccount
     {
-        balance += amount;
-        BalanceChangedDeposit?.Invoke(balance);
-    }
+        private decimal balance;
 
-    // Метод зняття
-    public void Withdraw(decimal amount)
-    {
-        if (amount <= balance)
+        public event BalanceChangedHandler BalanceChangedDeposit;
+        public event BalanceChangedHandler BalanceChangedWithdraw;
+
+        public void Deposit(decimal amount)
         {
-            balance -= amount;
-            BalanceChangedWithdraw?.Invoke(balance);
+            balance += amount;
+            BalanceChangedDeposit?.Invoke(balance);
         }
-        else
+
+        public void Withdraw(decimal amount)
         {
-            Console.WriteLine("Недостатньо коштів на рахунку.");
+            if (amount <= balance)
+            {
+                balance -= amount;
+                BalanceChangedWithdraw?.Invoke(balance);
+            }
+            else
+            {
+                Console.WriteLine("Недостатньо коштів для зняття.");
+            }
         }
     }
-}
 
-// Клас моніторингу
-public class AccountMonitor
-{
-    // Метод-обробник події
-    public void OnBalanceChanged(decimal newBalance)
+    class AccountMonitor
     {
-        Console.WriteLine($"Баланс змінено. Новий баланс: {newBalance} грн");
+        public void OnBalanceChanged(decimal newBalance)
+        {
+            Console.WriteLine($"Баланс змінено: новий баланс = {newBalance}\n");
+        }
     }
-}
 
-// Програма
-class Program
-{
-    static void Main()
+    class Program
     {
-        BankAccount account = new BankAccount();
-        AccountMonitor monitor = new AccountMonitor();
+        static void Main()
+        {
+            BankAccount account = new BankAccount();
+            AccountMonitor monitor = new AccountMonitor();
 
-        // Підписка на події
-        account.BalanceChangedDeposit += monitor.OnBalanceChanged;
-        account.BalanceChangedWithdraw += monitor.OnBalanceChanged;
+            account.BalanceChangedDeposit += monitor.OnBalanceChanged;
+            account.BalanceChangedWithdraw += monitor.OnBalanceChanged;
 
-        // Дії з рахунком
-        account.Deposit(1000);
-        account.Withdraw(300);
-        account.Withdraw(800);  // Тут буде помилка
+            while (true)
+            {
+                Console.WriteLine("Меню:");
+                Console.WriteLine("1 – Поповнити рахунок");
+                Console.WriteLine("2 – Зняти кошти");
+                Console.WriteLine("3 – Вийти");
+                Console.Write("Оберіть опцію: ");
+
+                string choice = Console.ReadLine();
+                if (choice == "3") break;
+
+                Console.Write("Введіть суму: ");
+                if (decimal.TryParse(Console.ReadLine(), out decimal amount))
+                {
+                    switch (choice)
+                    {
+                        case "1":
+                            account.Deposit(amount);
+                            break;
+                        case "2":
+                            account.Withdraw(amount);
+                            break;
+                        default:
+                            Console.WriteLine("Невірна опція.");
+                            break;
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("Невірний формат суми.");
+                }
+
+                Console.WriteLine();
+            }
+        }
     }
 }
