@@ -1,61 +1,64 @@
 using System;
 
-
+// Делегат для події
 public delegate void BalanceChangedHandler(decimal newBalance);
 
-
+// Клас банківського рахунку
 public class BankAccount
 {
     private decimal balance;
 
+    // Події
     public event BalanceChangedHandler BalanceChangedDeposit;
     public event BalanceChangedHandler BalanceChangedWithdraw;
 
+    // Метод поповнення
     public void Deposit(decimal amount)
     {
         balance += amount;
-        BalanceChangedDeposit?.Invoke(balance); 
+        BalanceChangedDeposit?.Invoke(balance);
     }
 
+    // Метод зняття
     public void Withdraw(decimal amount)
     {
         if (amount <= balance)
         {
             balance -= amount;
-            BalanceChangedWithdraw?.Invoke(balance); 
+            BalanceChangedWithdraw?.Invoke(balance);
         }
         else
         {
-            Console.WriteLine("❌ Недостатньо коштів на рахунку.");
+            Console.WriteLine("Недостатньо коштів на рахунку.");
         }
     }
 }
 
-
+// Клас моніторингу
 public class AccountMonitor
 {
+    // Метод-обробник події
     public void OnBalanceChanged(decimal newBalance)
     {
-        Console.WriteLine($"🔔 Баланс змінено. Новий баланс: {newBalance} грн");
+        Console.WriteLine($"Баланс змінено. Новий баланс: {newBalance} грн");
     }
 }
 
-
+// Програма
 class Program
 {
     static void Main()
     {
-      
         BankAccount account = new BankAccount();
         AccountMonitor monitor = new AccountMonitor();
 
-    
+        // Підписка на події
         account.BalanceChangedDeposit += monitor.OnBalanceChanged;
         account.BalanceChangedWithdraw += monitor.OnBalanceChanged;
 
-        
-        account.Deposit(1000);    
-        account.Withdraw(300);    
-        account.Withdraw(800);    
+        // Дії з рахунком
+        account.Deposit(1000);
+        account.Withdraw(300);
+        account.Withdraw(800);  // Тут буде помилка
     }
 }
